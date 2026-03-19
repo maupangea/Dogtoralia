@@ -1,0 +1,76 @@
+@model PetsIndexViewModel
+
+@{
+    ViewData["Title"] = "Mascotas";
+    var routeValues = new Dictionary<string, string?>();
+    if (!string.IsNullOrEmpty(Model.SelectedSpecies))
+        routeValues["species"] = Model.SelectedSpecies;
+    ViewBag.CurrentPage = Model.Pets.PageIndex;
+    ViewBag.TotalPages = Model.Pets.TotalPages;
+    ViewBag.RouteValues = routeValues;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Mascotas</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Nueva Mascota</a>
+</div>
+
+<form method="get" asp-action="Index" class="mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-auto">
+            <label class="form-label">Filtrar por Especie</label>
+            <select name="species" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Todas las Especies --</option>
+                @foreach (var s in Model.AvailableSpecies)
+                {
+                    <option value="@s" selected="@(Model.SelectedSpecies == s)">@s</option>
+                }
+            </select>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.SelectedSpecies))
+        {
+            <div class="col-auto">
+                <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+        }
+    </div>
+</form>
+
+@if (!Model.Pets.Any())
+{
+    <div class="alert alert-info">No se encontraron mascotas.</div>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Nombre</th>
+                <th>Especie</th>
+                <th>Raza</th>
+                <th>Edad</th>
+                <th>Propietario</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pet in Model.Pets)
+            {
+                <tr>
+                    <td>@pet.Name</td>
+                    <td><span class="badge bg-success">@pet.Species</span></td>
+                    <td>@pet.Breed</td>
+                    <td>@pet.Age año(s)</td>
+                    <td>@pet.OwnerName</td>
+                    <td class="d-flex gap-1">
+                        <a asp-action="Details" asp-route-id="@pet.Id" class="btn btn-sm btn-outline-info">Detalles</a>
+                        <a asp-action="Edit" asp-route-id="@pet.Id" class="btn btn-sm btn-outline-warning">Editar</a>
+                        <a asp-action="Delete" asp-route-id="@pet.Id" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @await Html.PartialAsync("_PaginationPartial")
+}

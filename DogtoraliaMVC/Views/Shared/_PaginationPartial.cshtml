@@ -1,0 +1,32 @@
+@{
+    int currentPage = (int)ViewBag.CurrentPage;
+    int totalPages = (int)ViewBag.TotalPages;
+    var routeValues = (Dictionary<string, string?>)ViewBag.RouteValues;
+}
+
+@if (totalPages > 1)
+{
+    <nav aria-label="Navegación de páginas">
+        <ul class="pagination justify-content-center mt-3">
+            @{
+                var prevRoute = new Dictionary<string, string?>(routeValues) { ["page"] = (currentPage - 1).ToString() };
+                var nextRoute = new Dictionary<string, string?>(routeValues) { ["page"] = (currentPage + 1).ToString() };
+            }
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link" asp-all-route-data="prevRoute">Anterior</a>
+            </li>
+
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                var pageRoute = new Dictionary<string, string?>(routeValues) { ["page"] = i.ToString() };
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link" asp-all-route-data="pageRoute">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <a class="page-link" asp-all-route-data="nextRoute">Siguiente</a>
+            </li>
+        </ul>
+    </nav>
+}
