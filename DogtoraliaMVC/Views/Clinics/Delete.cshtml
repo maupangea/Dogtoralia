@@ -1,0 +1,33 @@
+@model DogtoraliaMVC.Models.Clinic
+
+@{
+    ViewData["Title"] = "Eliminar Clínica";
+}
+
+<h1>Eliminar Clínica</h1>
+<div class="alert alert-danger">¿Estás seguro de que deseas eliminar esta clínica? También se eliminarán todos los veterinarios asociados.</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">Especialidad</dt>
+            <dd class="col-sm-9">@Model.Speciality.Name</dd>
+
+            <dt class="col-sm-3">Dirección</dt>
+            <dd class="col-sm-9">@Model.Address</dd>
+
+            <dt class="col-sm-3">Veterinarios</dt>
+            <dd class="col-sm-9">@Model.Veterinarians.Count</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
