@@ -1,0 +1,54 @@
+@model DogtoraliaMVC.Models.Appointment
+
+@{
+    ViewData["Title"] = "Eliminar cita";
+}
+
+@functions {
+    static string GetStatusLabel(DogtoraliaMVC.Models.AppointmentStatus s) => s switch
+    {
+        DogtoraliaMVC.Models.AppointmentStatus.Pending => "Pendiente",
+        DogtoraliaMVC.Models.AppointmentStatus.Confirmed => "Confirmada",
+        DogtoraliaMVC.Models.AppointmentStatus.Cancelled => "Cancelada",
+        DogtoraliaMVC.Models.AppointmentStatus.Completed => "Completada",
+        _ => s.ToString()
+    };
+}
+
+<h1>Eliminar cita</h1>
+
+<div class="alert alert-danger">
+    ¿Está seguro de que desea eliminar esta cita? Esta acción no se puede deshacer.
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Fecha</dt>
+            <dd class="col-sm-9">@Model.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Clínica</dt>
+            <dd class="col-sm-9">@Model.Clinic.Name</dd>
+
+            <dt class="col-sm-3">Mascota</dt>
+            <dd class="col-sm-9">@Model.Pet.Name</dd>
+
+            <dt class="col-sm-3">Veterinario</dt>
+            <dd class="col-sm-9">@(Model.Veterinarian?.FullName ?? "Sin asignar")</dd>
+
+            <dt class="col-sm-3">Motivo</dt>
+            <dd class="col-sm-9">@Model.Reason</dd>
+
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">@GetStatusLabel(Model.Status)</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <div class="d-flex gap-2">
+        <input type="submit" value="Sí, eliminar" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>

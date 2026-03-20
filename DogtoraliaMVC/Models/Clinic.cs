@@ -35,4 +35,5 @@ public class Clinic
     public Speciality Speciality { get; set; } = null!;
 
     public ICollection<Veterinarian> Veterinarians { get; set; } = new List<Veterinarian>();
+    public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 }

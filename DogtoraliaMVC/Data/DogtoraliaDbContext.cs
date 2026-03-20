@@ -11,6 +11,7 @@ public class DogtoraliaDbContext : DbContext
     public DbSet<Clinic> Clinics => Set<Clinic>();
     public DbSet<Veterinarian> Veterinarians => Set<Veterinarian>();
     public DbSet<Pet> Pets => Set<Pet>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +35,21 @@ public class DogtoraliaDbContext : DbContext
             .WithMany(s => s.Clinics)
             .HasForeignKey(c => c.SpecialityId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Cascade: Clinic → Appointments
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Clinic).WithMany(c => c.Appointments)
+            .HasForeignKey(a => a.ClinicId).OnDelete(DeleteBehavior.Cascade);
+
+        // Cascade: Pet → Appointments
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Pet).WithMany(p => p.Appointments)
+            .HasForeignKey(a => a.PetId).OnDelete(DeleteBehavior.Cascade);
+
+        // Restrict: Veterinarian → Appointments (avoid multi-cascade-path via Clinic→Vet→Appointment)
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Veterinarian).WithMany(v => v.Appointments)
+            .HasForeignKey(a => a.VeterinarianId).OnDelete(DeleteBehavior.Restrict);
 
         // Seed Specialities
         modelBuilder.Entity<Speciality>().HasData(

@@ -46,6 +46,7 @@ public class ClinicsController : Controller
         var clinic = await _context.Clinics
             .Include(c => c.Speciality)
             .Include(c => c.Veterinarians)
+            .Include(c => c.Appointments)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (clinic == null) return NotFound();

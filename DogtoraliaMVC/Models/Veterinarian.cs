@@ -34,4 +34,6 @@ public class Veterinarian
     public Clinic Clinic { get; set; } = null!;
 
     public string FullName => $"{FirstName} {LastName}";
+
+    public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 }
