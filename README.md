@@ -71,7 +71,7 @@ All UI text is in **Spanish**.
 dotnet test
 ```
 
-79 tests covering controller CRUD, seed data integrity, and pagination.
+81 tests covering controller CRUD, seed data integrity, and pagination.
 
 ---
 
