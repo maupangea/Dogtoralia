@@ -69,15 +69,19 @@ public class PetsController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var owner = await _context.PetOwners.FindAsync(vm.PetOwnerId);
-            if (owner != null)
+            var ownerForView = await _context.PetOwners.FindAsync(vm.PetOwnerId);
+            if (ownerForView != null)
             {
-                vm.OwnerName = owner.Name;
-                vm.OwnerEmail = owner.Email;
-                vm.OwnerPhone = owner.Phone;
+                vm.OwnerName = ownerForView.Name;
+                vm.OwnerEmail = ownerForView.Email;
+                vm.OwnerPhone = ownerForView.Phone;
             }
             return View(vm);
         }
+
+        var owner = await _context.PetOwners.FindAsync(vm.PetOwnerId);
+        if (owner == null)
+            return NotFound();
 
         var pet = new Pet
         {
@@ -141,6 +145,8 @@ public class PetsController : Controller
         var pet = await _context.Pets.FindAsync(id);
         if (pet == null) return NotFound();
 
+        var redirectOwnerId = pet.PetOwnerId;
+
         pet.Name = vm.Name;
         pet.Species = vm.Species;
         pet.Breed = vm.Breed;
@@ -158,7 +164,7 @@ public class PetsController : Controller
             throw;
         }
 
-        return RedirectToAction("Details", "PetOwners", new { id = vm.PetOwnerId });
+        return RedirectToAction("Details", "PetOwners", new { id = redirectOwnerId });
     }
 
     public async Task<IActionResult> Delete(int id)

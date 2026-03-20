@@ -139,12 +139,30 @@ public class PetOwnersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var owner = await _context.PetOwners.FindAsync(id);
-        if (owner != null)
+        var owner = await _context.PetOwners
+            .Include(o => o.Pets)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (owner == null)
+            return RedirectToAction(nameof(Index));
+
+        if (owner.Pets.Any())
+        {
+            ModelState.AddModelError(string.Empty, "No se puede eliminar el propietario porque tiene mascotas asociadas.");
+            return View("Delete", owner);
+        }
+
+        try
         {
             _context.PetOwners.Remove(owner);
             await _context.SaveChangesAsync();
         }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(string.Empty, "No se pudo eliminar el propietario. Inténtelo de nuevo.");
+            return View("Delete", owner);
+        }
+
         return RedirectToAction(nameof(Index));
     }
 }

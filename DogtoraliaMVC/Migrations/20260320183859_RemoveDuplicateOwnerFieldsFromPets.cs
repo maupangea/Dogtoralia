@@ -14,8 +14,17 @@ namespace DogtoraliaMVC.Migrations
                 name: "FK_Pets_PetOwners_PetOwnerId",
                 table: "Pets");
 
-            // Remove pets that have no valid PetOwner so the NOT NULL + FK constraint can be applied cleanly
-            migrationBuilder.Sql("DELETE FROM [Pets] WHERE [PetOwnerId] IS NULL OR [PetOwnerId] NOT IN (SELECT [Id] FROM [PetOwners])");
+            // Fail migration if any pets have a NULL or invalid PetOwnerId to prevent silent data loss
+            migrationBuilder.Sql(@"
+IF EXISTS (
+    SELECT 1 FROM [Pets] AS P
+    WHERE P.[PetOwnerId] IS NULL
+       OR NOT EXISTS (SELECT 1 FROM [PetOwners] AS O WHERE O.[Id] = P.[PetOwnerId])
+)
+BEGIN
+    THROW 50001, 'Migration RemoveDuplicateOwnerFieldsFromPets cannot proceed: found Pets with NULL or invalid PetOwnerId. Please fix or remove these records before applying this migration.', 1;
+END;
+");
 
             migrationBuilder.DropColumn(
                 name: "OwnerEmail",
@@ -34,7 +43,6 @@ namespace DogtoraliaMVC.Migrations
                 table: "Pets",
                 type: "int",
                 nullable: false,
-                defaultValue: 0,
                 oldClrType: typeof(int),
                 oldType: "int",
                 oldNullable: true);

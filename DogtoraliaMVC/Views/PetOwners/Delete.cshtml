@@ -7,6 +7,8 @@
 
 <h1>Eliminar propietario</h1>
 
+<div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
 @if (hasPets)
 {
     <div class="alert alert-danger">
