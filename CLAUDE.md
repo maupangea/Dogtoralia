@@ -9,18 +9,18 @@ Veterinary services catalog built with ASP.NET Core 10.0 MVC + EF Core 10.0.5 + 
 ```
 Dogtoralia/
 ├── DogtoraliaMVC/          # Main web app (net10.0)
-│   ├── Controllers/        # ClinicsController, PetsController, AppointmentsController, HomeController
+│   ├── Controllers/        # ClinicsController, PetsController, AppointmentsController, PetOwnersController, HomeController
 │   ├── Data/               # DogtoraliaDbContext
 │   ├── Helpers/            # PaginatedList<T>
 │   ├── Migrations/         # EF migrations (auto-generated)
-│   ├── Models/             # Speciality, Clinic, Veterinarian, Pet, Appointment, AppointmentStatus
-│   ├── ViewModels/         # ClinicsIndexViewModel, ClinicFormViewModel, PetsIndexViewModel, PetFormViewModel, AppointmentsIndexViewModel, AppointmentFormViewModel
-│   ├── Views/              # Clinics/, Pets/, Appointments/, Shared/, Home/
+│   ├── Models/             # Speciality, Clinic, Veterinarian, Pet, PetOwner, Appointment, AppointmentStatus
+│   ├── ViewModels/         # ClinicsIndexViewModel, ClinicFormViewModel, PetsIndexViewModel, PetFormViewModel, AppointmentsIndexViewModel, AppointmentFormViewModel, PetOwnerFormViewModel, PetOwnerDetailsViewModel
+│   ├── Views/              # Clinics/, Pets/, Appointments/, PetOwners/, Shared/, Home/
 │   ├── wwwroot/            # Bootstrap 5, jQuery, site.css
 │   ├── appsettings.json    # SQL Server connection string (DefaultConnection)
 │   └── Program.cs          # DI config, middleware
 └── DogtoraliaMVC.Tests/    # xUnit tests (net10.0)
-    ├── Controllers/        # ClinicsControllerTests, PetsControllerTests, AppointmentsControllerTests
+    ├── Controllers/        # ClinicsControllerTests, PetsControllerTests, AppointmentsControllerTests, PetOwnersControllerTests
     ├── Data/               # DbContextSeedTests
     └── Helpers/            # PaginatedListTests
 ```
@@ -34,7 +34,8 @@ Dogtoralia/
 | `Speciality` | Id, Name (required, max 100) |
 | `Clinic` | Id, Name, Address, Phone, Email, Website?, Description?, CreatedAt, SpecialityId (FK) |
 | `Veterinarian` | Id, FirstName, LastName, LicenseNumber (unique), Email, Phone, YearsOfExperience, ClinicId (FK). Computed: `FullName` |
-| `Pet` | Id, Name, Species, Breed, DateOfBirth, OwnerName, OwnerEmail, OwnerPhone, Notes?, CreatedAt. Computed: `Age` |
+| `PetOwner` | Id, Name (required, max 200), Email (required, unique, max 200), Phone (required, max 20), CreatedAt |
+| `Pet` | Id, Name, Species, Breed, DateOfBirth, Notes?, CreatedAt, PetOwnerId (FK, required). Computed: `Age` |
 | `Appointment` | Id, ClinicId (FK), PetId (FK), VeterinarianId? (FK), AppointmentDate, Reason (max 500), Notes? (max 1000), Status (enum), CreatedAt |
 | `AppointmentStatus` | Enum: Pending=0, Confirmed=1, Cancelled=2, Completed=3 |
 
@@ -44,6 +45,7 @@ Dogtoralia/
 - `Clinic → Appointments`: `CASCADE DELETE`
 - `Pet → Appointments`: `CASCADE DELETE`
 - `Veterinarian → Appointments`: `RESTRICT` (avoid multi-cascade-path SQL Server error)
+- `PetOwner → Pets`: `RESTRICT` (cannot delete an owner who has pets)
 
 ---
 
@@ -58,7 +60,7 @@ dotnet ef database update
 ```
 
 Seed data is loaded via `HasData` in `DogtoraliaDbContext.OnModelCreating` — it runs as part of migrations, not at app startup. Seed includes:
-- 5 Specialities, 6 Clinics, 10 Veterinarians, 10 Pets
+- 5 Specialities, 6 Clinics, 10 Veterinarians, 10 PetOwners, 10 Pets (each Pet linked to a PetOwner)
 
 **Important:** Never use `DateTime.UtcNow` in `HasData` seeds — EF requires compile-time constants. Use `new DateTime(year, month, day)` literals.
 
@@ -73,12 +75,21 @@ Seed data is loaded via `HasData` in `DogtoraliaDbContext.OnModelCreating` — i
 - Full CRUD: Index, Details, Create, Edit, Delete
 - Includes `Speciality` and `Veterinarians` in queries
 
+### Pet Owners (`/PetOwners`)
+- Bootstrap striped table listing all owners with pet count
+- Full CRUD: Index, Details, Create, Edit, Delete
+- Details page shows the owner's pets with Edit/Delete/View actions
+- Delete is blocked in the UI (and restricted in DB) if the owner has pets
+- Email uniqueness validated on Create and Edit
+
 ### Pets (`/Pets`)
-- Bootstrap striped table
+- Bootstrap striped table; owner column links to `PetOwners/Details`
 - Filter by species via GET query param `species`
 - Pagination: page size 8, `PaginatedList<Pet>`
-- Full CRUD: Index, Details, Create, Edit, Delete
-- Species options: Dog, Cat, Bird, Rabbit, Hamster, Other
+- **Pets are created from `PetOwners/Details`** — the Create form is pre-filled with owner info (read-only) and accepts a `petOwnerId` route param
+- Create/Edit/Delete all redirect back to `PetOwners/Details` after saving
+- Species options: Perro, Gato, Ave, Conejo, Hámster, Otro
+- `Pet.PetOwnerId` is required (non-nullable FK); owner info is read via navigation property — no duplicate owner fields on Pet
 
 ### Appointments (`/Appointments`)
 - Bootstrap striped table
@@ -91,7 +102,7 @@ Seed data is loaded via `HasData` in `DogtoraliaDbContext.OnModelCreating` — i
 
 ### Shared
 - `_PaginationPartial.cshtml` — Bootstrap 5 `<nav>`, reads `ViewBag.CurrentPage`, `ViewBag.TotalPages`, `ViewBag.RouteValues`
-- `_Layout.cshtml` — navbar includes Home, Clinics, Mascotas, Citas, Privacy
+- `_Layout.cshtml` — navbar includes Inicio, Clínicas, Propietarios, Mascotas, Citas, Privacidad
 
 ---
 
@@ -102,9 +113,11 @@ Seed data is loaded via `HasData` in `DogtoraliaDbContext.OnModelCreating` — i
 | `ClinicsIndexViewModel` | Index page: paginated clinics + speciality filter list |
 | `ClinicFormViewModel` | Create/Edit form with `SelectList SpecialityOptions` |
 | `PetsIndexViewModel` | Index page: paginated pets + species filter list |
-| `PetFormViewModel` | Create/Edit form with static `SelectList SpeciesOptions` |
+| `PetFormViewModel` | Create/Edit form — holds `PetOwnerId` (required) + display-only owner fields + `SelectList SpeciesOptions` |
 | `AppointmentsIndexViewModel` | Index page: paginated appointments + clinic/status filter lists |
 | `AppointmentFormViewModel` | Create/Edit form with SelectLists for Clinic, Pet, Veterinarian, Status |
+| `PetOwnerFormViewModel` | Create/Edit form with Name, Email, Phone validation |
+| `PetOwnerDetailsViewModel` | Details page: `PetOwner Owner` + `List<Pet> Pets` |
 
 Manual mapping is used (no AutoMapper) — controllers map ViewModel ↔ entity explicitly.
 
@@ -119,7 +132,7 @@ dotnet test
 
 - **Strategy:** xUnit + EF Core InMemory provider. Each test creates an isolated in-memory DB with a unique `Guid` name.
 - **Seed in tests:** `ctx.Database.EnsureCreated()` triggers `HasData` seeds automatically.
-- **60 tests total:** controller CRUD (Create/Read/Update/Delete GET+POST), pagination helper, and seed data integrity.
+- **79 tests total:** controller CRUD (Create/Read/Update/Delete GET+POST), pagination helper, and seed data integrity.
 
 ---
 

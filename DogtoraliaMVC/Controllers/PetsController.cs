@@ -19,7 +19,7 @@ public class PetsController : Controller
 
     public async Task<IActionResult> Index(string? species, int page = 1)
     {
-        var query = _context.Pets.AsQueryable();
+        var query = _context.Pets.Include(p => p.PetOwner).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(species))
             query = query.Where(p => p.Species == species);
@@ -39,14 +39,28 @@ public class PetsController : Controller
 
     public async Task<IActionResult> Details(int id)
     {
-        var pet = await _context.Pets.FirstOrDefaultAsync(p => p.Id == id);
+        var pet = await _context.Pets
+            .Include(p => p.PetOwner)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (pet == null) return NotFound();
         return View(pet);
     }
 
-    public IActionResult Create()
+    public async Task<IActionResult> Create(int petOwnerId)
     {
-        return View(new PetFormViewModel());
+        var owner = await _context.PetOwners.FindAsync(petOwnerId);
+        if (owner == null) return NotFound();
+
+        var vm = new PetFormViewModel
+        {
+            PetOwnerId = petOwnerId,
+            OwnerName = owner.Name,
+            OwnerEmail = owner.Email,
+            OwnerPhone = owner.Phone
+        };
+
+        return View(vm);
     }
 
     [HttpPost]
@@ -54,7 +68,16 @@ public class PetsController : Controller
     public async Task<IActionResult> Create(PetFormViewModel vm)
     {
         if (!ModelState.IsValid)
+        {
+            var owner = await _context.PetOwners.FindAsync(vm.PetOwnerId);
+            if (owner != null)
+            {
+                vm.OwnerName = owner.Name;
+                vm.OwnerEmail = owner.Email;
+                vm.OwnerPhone = owner.Phone;
+            }
             return View(vm);
+        }
 
         var pet = new Pet
         {
@@ -62,33 +85,35 @@ public class PetsController : Controller
             Species = vm.Species,
             Breed = vm.Breed,
             DateOfBirth = vm.DateOfBirth,
-            OwnerName = vm.OwnerName,
-            OwnerEmail = vm.OwnerEmail,
-            OwnerPhone = vm.OwnerPhone,
             Notes = vm.Notes,
+            PetOwnerId = vm.PetOwnerId,
             CreatedAt = DateTime.UtcNow
         };
 
         _context.Pets.Add(pet);
         await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Details", "PetOwners", new { id = vm.PetOwnerId });
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var pet = await _context.Pets.FindAsync(id);
+        var pet = await _context.Pets
+            .Include(p => p.PetOwner)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (pet == null) return NotFound();
 
         var vm = new PetFormViewModel
         {
             Id = pet.Id,
+            PetOwnerId = pet.PetOwnerId,
+            OwnerName = pet.PetOwner.Name,
+            OwnerEmail = pet.PetOwner.Email,
+            OwnerPhone = pet.PetOwner.Phone,
             Name = pet.Name,
             Species = pet.Species,
             Breed = pet.Breed,
             DateOfBirth = pet.DateOfBirth,
-            OwnerName = pet.OwnerName,
-            OwnerEmail = pet.OwnerEmail,
-            OwnerPhone = pet.OwnerPhone,
             Notes = pet.Notes
         };
 
@@ -102,7 +127,16 @@ public class PetsController : Controller
         if (id != vm.Id) return BadRequest();
 
         if (!ModelState.IsValid)
+        {
+            var owner = await _context.PetOwners.FindAsync(vm.PetOwnerId);
+            if (owner != null)
+            {
+                vm.OwnerName = owner.Name;
+                vm.OwnerEmail = owner.Email;
+                vm.OwnerPhone = owner.Phone;
+            }
             return View(vm);
+        }
 
         var pet = await _context.Pets.FindAsync(id);
         if (pet == null) return NotFound();
@@ -111,9 +145,6 @@ public class PetsController : Controller
         pet.Species = vm.Species;
         pet.Breed = vm.Breed;
         pet.DateOfBirth = vm.DateOfBirth;
-        pet.OwnerName = vm.OwnerName;
-        pet.OwnerEmail = vm.OwnerEmail;
-        pet.OwnerPhone = vm.OwnerPhone;
         pet.Notes = vm.Notes;
 
         try
@@ -127,12 +158,15 @@ public class PetsController : Controller
             throw;
         }
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Details", "PetOwners", new { id = vm.PetOwnerId });
     }
 
     public async Task<IActionResult> Delete(int id)
     {
-        var pet = await _context.Pets.FirstOrDefaultAsync(p => p.Id == id);
+        var pet = await _context.Pets
+            .Include(p => p.PetOwner)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (pet == null) return NotFound();
         return View(pet);
     }
@@ -144,9 +178,11 @@ public class PetsController : Controller
         var pet = await _context.Pets.FindAsync(id);
         if (pet != null)
         {
+            var ownerId = pet.PetOwnerId;
             _context.Pets.Remove(pet);
             await _context.SaveChangesAsync();
+            return RedirectToAction("Details", "PetOwners", new { id = ownerId });
         }
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Index", "PetOwners");
     }
 }

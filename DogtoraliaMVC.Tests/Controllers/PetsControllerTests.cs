@@ -52,7 +52,7 @@ public class PetsControllerTests
     {
         using var ctx = CreateContext();
         // Add more pets to trigger pagination (page size = 8, 10 already seeded)
-        ctx.Pets.Add(new Pet { Name = "X", Species = "Gato", Breed = "B", DateOfBirth = new DateTime(2021, 1, 1), OwnerName = "O", OwnerEmail = "o@o.com", OwnerPhone = "1", CreatedAt = DateTime.UtcNow });
+        ctx.Pets.Add(new Pet { Name = "X", Species = "Gato", Breed = "B", DateOfBirth = new DateTime(2021, 1, 1), PetOwnerId = 1, CreatedAt = DateTime.UtcNow });
         await ctx.SaveChangesAsync();
 
         var controller = new PetsController(ctx);
@@ -90,38 +90,49 @@ public class PetsControllerTests
     // ── Create GET ───────────────────────────────────────────────────────────
 
     [Fact]
-    public void Create_Get_ReturnsViewWithSpeciesOptions()
+    public async Task Create_Get_ValidOwnerId_ReturnsViewWithSpeciesOptions()
     {
         using var ctx = CreateContext();
         var controller = new PetsController(ctx);
 
-        var result = controller.Create() as ViewResult;
+        var result = await controller.Create(petOwnerId: 1) as ViewResult;
         var vm = result!.Model as PetFormViewModel;
 
         Assert.NotNull(vm!.SpeciesOptions);
+        Assert.Equal(1, vm.PetOwnerId);
+    }
+
+    [Fact]
+    public async Task Create_Get_InvalidOwnerId_ReturnsNotFound()
+    {
+        using var ctx = CreateContext();
+        var controller = new PetsController(ctx);
+
+        var result = await controller.Create(petOwnerId: 999);
+
+        Assert.IsType<NotFoundResult>(result);
     }
 
     // ── Create POST ──────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task Create_Post_ValidModel_RedirectsToIndex()
+    public async Task Create_Post_ValidModel_RedirectsToPetOwnerDetails()
     {
         using var ctx = CreateContext();
         var controller = new PetsController(ctx);
         var vm = new PetFormViewModel
         {
             Name = "Buddy",
-            Species = "Dog",
+            Species = "Perro",
             Breed = "Poodle",
             DateOfBirth = new DateTime(2022, 5, 1),
-            OwnerName = "Jane Doe",
-            OwnerEmail = "jane@test.com",
-            OwnerPhone = "+52-55-0000-0000"
+            PetOwnerId = 1
         };
 
-        var result = await controller.Create(vm);
+        var result = await controller.Create(vm) as RedirectToActionResult;
 
-        Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", result!.ActionName);
+        Assert.Equal("PetOwners", result.ControllerName);
         Assert.Equal(11, ctx.Pets.Count());
     }
 
@@ -165,7 +176,7 @@ public class PetsControllerTests
     // ── Edit POST ────────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task Edit_Post_ValidModel_UpdatesAndRedirects()
+    public async Task Edit_Post_ValidModel_UpdatesAndRedirectsToPetOwnerDetails()
     {
         using var ctx = CreateContext();
         var controller = new PetsController(ctx);
@@ -173,17 +184,16 @@ public class PetsControllerTests
         {
             Id = 1,
             Name = "Max Updated",
-            Species = "Dog",
+            Species = "Perro",
             Breed = "Labrador",
             DateOfBirth = new DateTime(2020, 3, 15),
-            OwnerName = "Jorge",
-            OwnerEmail = "jorge@test.com",
-            OwnerPhone = "+52-55-0000-0000"
+            PetOwnerId = 1
         };
 
-        var result = await controller.Edit(1, vm);
+        var result = await controller.Edit(1, vm) as RedirectToActionResult;
 
-        Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", result!.ActionName);
+        Assert.Equal("PetOwners", result.ControllerName);
         Assert.Equal("Max Updated", ctx.Pets.Find(1)!.Name);
     }
 
@@ -205,7 +215,7 @@ public class PetsControllerTests
         using var ctx = CreateContext();
         var controller = new PetsController(ctx);
         controller.ModelState.AddModelError("Name", "Required");
-        var vm = new PetFormViewModel { Id = 1 };
+        var vm = new PetFormViewModel { Id = 1, PetOwnerId = 1 };
 
         var result = await controller.Edit(1, vm);
 
@@ -239,14 +249,15 @@ public class PetsControllerTests
     // ── Delete POST ──────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task DeleteConfirmed_ValidId_DeletesAndRedirects()
+    public async Task DeleteConfirmed_ValidId_DeletesAndRedirectsToPetOwnerDetails()
     {
         using var ctx = CreateContext();
         var controller = new PetsController(ctx);
 
-        var result = await controller.DeleteConfirmed(1);
+        var result = await controller.DeleteConfirmed(1) as RedirectToActionResult;
 
-        Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", result!.ActionName);
+        Assert.Equal("PetOwners", result.ControllerName);
         Assert.Null(ctx.Pets.Find(1));
     }
 }

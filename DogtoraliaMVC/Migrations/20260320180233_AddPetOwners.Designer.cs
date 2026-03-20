@@ -4,6 +4,7 @@ using DogtoraliaMVC.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DogtoraliaMVC.Migrations
 {
     [DbContext(typeof(DogtoraliaDbContext))]
-    partial class DogtoraliaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260320180233_AddPetOwners")]
+    partial class AddPetOwners
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -217,7 +220,22 @@ namespace DogtoraliaMVC.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("PetOwnerId")
+                    b.Property<string>("OwnerEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("OwnerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("OwnerPhone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("PetOwnerId")
                         .HasColumnType("int");
 
                     b.Property<string>("Species")
@@ -240,6 +258,9 @@ namespace DogtoraliaMVC.Migrations
                             DateOfBirth = new DateTime(2020, 3, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Max",
                             Notes = "Alérgico al pollo.",
+                            OwnerEmail = "jorge.sanchez@gmail.com",
+                            OwnerName = "Jorge Sánchez",
+                            OwnerPhone = "+52-55-1234-5601",
                             PetOwnerId = 1,
                             Species = "Perro"
                         },
@@ -250,6 +271,9 @@ namespace DogtoraliaMVC.Migrations
                             CreatedAt = new DateTime(2024, 2, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfBirth = new DateTime(2021, 7, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Luna",
+                            OwnerEmail = "maria.fernandez@outlook.com",
+                            OwnerName = "María Fernández",
+                            OwnerPhone = "+52-55-1234-5602",
                             PetOwnerId = 2,
                             Species = "Gato"
                         },
@@ -261,6 +285,9 @@ namespace DogtoraliaMVC.Migrations
                             DateOfBirth = new DateTime(2018, 11, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Paco",
                             Notes = "Habla español.",
+                            OwnerEmail = "andres.gomez@yahoo.com",
+                            OwnerName = "Andrés Gómez",
+                            OwnerPhone = "+52-33-9876-5603",
                             PetOwnerId = 3,
                             Species = "Ave"
                         },
@@ -271,6 +298,9 @@ namespace DogtoraliaMVC.Migrations
                             CreatedAt = new DateTime(2024, 3, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfBirth = new DateTime(2019, 5, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Bella",
+                            OwnerEmail = "patricia.lopez@gmail.com",
+                            OwnerName = "Patricia López",
+                            OwnerPhone = "+52-81-5555-5604",
                             PetOwnerId = 4,
                             Species = "Perro"
                         },
@@ -282,6 +312,9 @@ namespace DogtoraliaMVC.Migrations
                             DateOfBirth = new DateTime(2022, 1, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Mimi",
                             Notes = "Pelo largo, requiere grooming mensual.",
+                            OwnerEmail = "roberto.diaz@hotmail.com",
+                            OwnerName = "Roberto Díaz",
+                            OwnerPhone = "+52-55-1234-5605",
                             PetOwnerId = 5,
                             Species = "Gato"
                         },
@@ -292,6 +325,9 @@ namespace DogtoraliaMVC.Migrations
                             CreatedAt = new DateTime(2024, 4, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfBirth = new DateTime(2020, 9, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Rocky",
+                            OwnerEmail = "lucia.herrera@gmail.com",
+                            OwnerName = "Lucía Herrera",
+                            OwnerPhone = "+52-22-7777-5606",
                             PetOwnerId = 6,
                             Species = "Perro"
                         },
@@ -303,6 +339,9 @@ namespace DogtoraliaMVC.Migrations
                             DateOfBirth = new DateTime(2023, 2, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Coco",
                             Notes = "Muy sociable.",
+                            OwnerEmail = "eduardo.torres@gmail.com",
+                            OwnerName = "Eduardo Torres",
+                            OwnerPhone = "+52-55-1234-5607",
                             PetOwnerId = 7,
                             Species = "Ave"
                         },
@@ -313,6 +352,9 @@ namespace DogtoraliaMVC.Migrations
                             CreatedAt = new DateTime(2024, 5, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfBirth = new DateTime(2020, 6, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Nala",
+                            OwnerEmail = "gabriela.ruiz@outlook.com",
+                            OwnerName = "Gabriela Ruiz",
+                            OwnerPhone = "+52-33-3333-5608",
                             PetOwnerId = 8,
                             Species = "Gato"
                         },
@@ -324,6 +366,9 @@ namespace DogtoraliaMVC.Migrations
                             DateOfBirth = new DateTime(2022, 10, 17, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Tito",
                             Notes = "Dieta especial sin pellets.",
+                            OwnerEmail = "felipe.morales@yahoo.com",
+                            OwnerName = "Felipe Morales",
+                            OwnerPhone = "+52-81-8888-5609",
                             PetOwnerId = 9,
                             Species = "Conejo"
                         },
@@ -334,6 +379,9 @@ namespace DogtoraliaMVC.Migrations
                             CreatedAt = new DateTime(2024, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfBirth = new DateTime(2021, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Kira",
+                            OwnerEmail = "isabella.castro@gmail.com",
+                            OwnerName = "Isabella Castro",
+                            OwnerPhone = "+52-55-1234-5610",
                             PetOwnerId = 10,
                             Species = "Perro"
                         });
@@ -703,8 +751,7 @@ namespace DogtoraliaMVC.Migrations
                     b.HasOne("DogtoraliaMVC.Models.PetOwner", "PetOwner")
                         .WithMany("Pets")
                         .HasForeignKey("PetOwnerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("PetOwner");
                 });

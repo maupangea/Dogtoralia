@@ -20,7 +20,7 @@
             <dd class="col-sm-9">@Model.Breed</dd>
 
             <dt class="col-sm-3">Propietario</dt>
-            <dd class="col-sm-9">@Model.OwnerName</dd>
+            <dd class="col-sm-9">@Model.PetOwner.Name</dd>
         </dl>
     </div>
 </div>
@@ -28,6 +28,6 @@
 <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-danger">Eliminar</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        <a asp-controller="PetOwners" asp-action="Details" asp-route-id="@Model.PetOwnerId" class="btn btn-secondary">Cancelar</a>
     </div>
 </form>

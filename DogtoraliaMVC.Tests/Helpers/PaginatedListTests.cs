@@ -26,9 +26,7 @@ public class PaginatedListTests
                 Species = "Gato",
                 Breed = "Test",
                 DateOfBirth = new DateTime(2021, 1, 1),
-                OwnerName = "Owner",
-                OwnerEmail = $"owner{i}@test.com",
-                OwnerPhone = "1234567890",
+                PetOwnerId = 1,
                 CreatedAt = DateTime.UtcNow
             });
         ctx.SaveChanges();
