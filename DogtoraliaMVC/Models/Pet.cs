@@ -38,4 +38,6 @@ public class Pet
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int Age => (int)((DateTime.Today - DateOfBirth).TotalDays / 365.25);
+
+    public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 }

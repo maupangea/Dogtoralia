@@ -1,0 +1,121 @@
+@model DogtoraliaMVC.ViewModels.AppointmentsIndexViewModel
+
+@{
+    ViewData["Title"] = "Citas";
+}
+
+@functions {
+    static string GetStatusLabel(DogtoraliaMVC.Models.AppointmentStatus s) => s switch
+    {
+        DogtoraliaMVC.Models.AppointmentStatus.Pending => "Pendiente",
+        DogtoraliaMVC.Models.AppointmentStatus.Confirmed => "Confirmada",
+        DogtoraliaMVC.Models.AppointmentStatus.Cancelled => "Cancelada",
+        DogtoraliaMVC.Models.AppointmentStatus.Completed => "Completada",
+        _ => s.ToString()
+    };
+
+    static string GetStatusBadgeClass(DogtoraliaMVC.Models.AppointmentStatus s) => s switch
+    {
+        DogtoraliaMVC.Models.AppointmentStatus.Pending => "bg-warning text-dark",
+        DogtoraliaMVC.Models.AppointmentStatus.Confirmed => "bg-success",
+        DogtoraliaMVC.Models.AppointmentStatus.Cancelled => "bg-danger",
+        DogtoraliaMVC.Models.AppointmentStatus.Completed => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+}
+
+<h1>Citas</h1>
+
+<div class="row g-2 mb-3 align-items-end">
+    <div class="col-md-4">
+        <label class="form-label">Clínica</label>
+        <select id="clinicFilter" class="form-select" onchange="applyFilters()">
+            <option value="">Todas las clínicas</option>
+            @foreach (var clinic in Model.Clinics)
+            {
+                if (Model.SelectedClinicId == clinic.Id)
+                {
+                    <option value="@clinic.Id" selected>@clinic.Name</option>
+                }
+                else
+                {
+                    <option value="@clinic.Id">@clinic.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Estado</label>
+        <select id="statusFilter" class="form-select" onchange="applyFilters()">
+            <option value="">Todos los estados</option>
+            @foreach (var status in Model.AvailableStatuses)
+            {
+                if (Model.SelectedStatus == status)
+                {
+                    <option value="@((int)status)" selected>@GetStatusLabel(status)</option>
+                }
+                else
+                {
+                    <option value="@((int)status)">@GetStatusLabel(status)</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <a asp-action="Create" class="btn btn-primary">+ Nueva cita</a>
+    </div>
+</div>
+
+@if (Model.Appointments.Any())
+{
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Clínica</th>
+                <th>Mascota</th>
+                <th>Veterinario</th>
+                <th>Motivo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appointment in Model.Appointments)
+            {
+                <tr>
+                    <td>@appointment.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@appointment.Clinic.Name</td>
+                    <td>@appointment.Pet.Name</td>
+                    <td>@(appointment.Veterinarian?.FullName ?? "Sin asignar")</td>
+                    <td>@(appointment.Reason.Length > 50 ? appointment.Reason[..50] + "…" : appointment.Reason)</td>
+                    <td><span class="badge @GetStatusBadgeClass(appointment.Status)">@GetStatusLabel(appointment.Status)</span></td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@appointment.Id" class="btn btn-info btn-sm">Ver</a>
+                        <a asp-action="Edit" asp-route-id="@appointment.Id" class="btn btn-warning btn-sm">Editar</a>
+                        <a asp-action="Delete" asp-route-id="@appointment.Id" class="btn btn-danger btn-sm">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @await Html.PartialAsync("_PaginationPartial")
+}
+else
+{
+    <div class="alert alert-info">No hay citas registradas.</div>
+}
+
+@section Scripts {
+    <script>
+        function applyFilters() {
+            const clinicId = document.getElementById('clinicFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const params = new URLSearchParams();
+            if (clinicId) params.set('clinicId', clinicId);
+            if (status) params.set('status', status);
+            window.location.href = '/Appointments?' + params.toString();
+        }
+    </script>
+}
