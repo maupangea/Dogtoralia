@@ -132,7 +132,7 @@ dotnet test
 
 - **Strategy:** xUnit + EF Core InMemory provider. Each test creates an isolated in-memory DB with a unique `Guid` name.
 - **Seed in tests:** `ctx.Database.EnsureCreated()` triggers `HasData` seeds automatically.
-- **79 tests total:** controller CRUD (Create/Read/Update/Delete GET+POST), pagination helper, and seed data integrity.
+- **81 tests total:** controller CRUD (Create/Read/Update/Delete GET+POST), pagination helper, and seed data integrity.
 
 ---
 
