@@ -44,6 +44,13 @@ public class DbContextSeedTests
     }
 
     [Fact]
+    public void Seed_HasTenPetOwners()
+    {
+        using var ctx = CreateContext();
+        Assert.Equal(10, ctx.PetOwners.Count());
+    }
+
+    [Fact]
     public void Seed_AllClinics_HaveValidSpecialityFk()
     {
         using var ctx = CreateContext();
@@ -67,5 +74,22 @@ public class DbContextSeedTests
         using var ctx = CreateContext();
         var licenses = ctx.Veterinarians.Select(v => v.LicenseNumber).ToList();
         Assert.Equal(licenses.Count, licenses.Distinct().Count());
+    }
+
+    [Fact]
+    public void Seed_AllPets_HaveValidPetOwnerFk()
+    {
+        using var ctx = CreateContext();
+        var ownerIds = ctx.PetOwners.Select(o => o.Id).ToHashSet();
+        var allValid = ctx.Pets.All(p => ownerIds.Contains(p.PetOwnerId));
+        Assert.True(allValid);
+    }
+
+    [Fact]
+    public void Seed_PetOwnerEmails_AreUnique()
+    {
+        using var ctx = CreateContext();
+        var emails = ctx.PetOwners.Select(o => o.Email).ToList();
+        Assert.Equal(emails.Count, emails.Distinct().Count());
     }
 }

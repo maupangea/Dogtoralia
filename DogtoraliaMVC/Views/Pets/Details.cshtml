@@ -17,13 +17,15 @@
             <dd class="col-sm-9">@Model.DateOfBirth.ToString("d MMM yyyy") (@Model.Age año(s) de edad)</dd>
 
             <dt class="col-sm-3">Propietario</dt>
-            <dd class="col-sm-9">@Model.OwnerName</dd>
+            <dd class="col-sm-9">
+                <a asp-controller="PetOwners" asp-action="Details" asp-route-id="@Model.PetOwnerId">@Model.PetOwner.Name</a>
+            </dd>
 
             <dt class="col-sm-3">Correo del propietario</dt>
-            <dd class="col-sm-9"><a href="mailto:@Model.OwnerEmail">@Model.OwnerEmail</a></dd>
+            <dd class="col-sm-9"><a href="mailto:@Model.PetOwner.Email">@Model.PetOwner.Email</a></dd>
 
             <dt class="col-sm-3">Teléfono del propietario</dt>
-            <dd class="col-sm-9">@Model.OwnerPhone</dd>
+            <dd class="col-sm-9">@Model.PetOwner.Phone</dd>
 
             @if (!string.IsNullOrEmpty(Model.Notes))
             {
@@ -39,5 +41,5 @@
 
 <div class="d-flex gap-2">
     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
-    <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+    <a asp-controller="PetOwners" asp-action="Details" asp-route-id="@Model.PetOwnerId" class="btn btn-secondary">Volver al propietario</a>
 </div>

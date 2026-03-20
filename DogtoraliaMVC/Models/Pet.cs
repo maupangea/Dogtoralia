@@ -19,23 +19,14 @@ public class Pet
 
     public DateTime DateOfBirth { get; set; }
 
-    [Required]
-    [MaxLength(200)]
-    public string OwnerName { get; set; } = string.Empty;
-
-    [Required]
-    [EmailAddress]
-    [MaxLength(200)]
-    public string OwnerEmail { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(20)]
-    public string OwnerPhone { get; set; } = string.Empty;
-
     [MaxLength(1000)]
     public string? Notes { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public int PetOwnerId { get; set; }
+
+    public PetOwner PetOwner { get; set; } = null!;
 
     public int Age => (int)((DateTime.Today - DateOfBirth).TotalDays / 365.25);
 

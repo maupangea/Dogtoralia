@@ -1,0 +1,57 @@
+@model DogtoraliaMVC.Models.PetOwner
+
+@{
+    ViewData["Title"] = "Eliminar propietario";
+    bool hasPets = Model.Pets.Any();
+}
+
+<h1>Eliminar propietario</h1>
+
+<div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+@if (hasPets)
+{
+    <div class="alert alert-danger">
+        No es posible eliminar a <strong>@Model.Name</strong> porque tiene <strong>@Model.Pets.Count mascota(s)</strong> registrada(s).
+        Primero elimine o reasigne sus mascotas.
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        ¿Está seguro de que desea eliminar al propietario <strong>@Model.Name</strong>?
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">Correo electrónico</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Teléfono</dt>
+            <dd class="col-sm-9">@Model.Phone</dd>
+
+            <dt class="col-sm-3">Mascotas</dt>
+            <dd class="col-sm-9">@Model.Pets.Count</dd>
+        </dl>
+    </div>
+</div>
+
+@if (!hasPets)
+{
+    <form asp-action="Delete" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+}
+else
+{
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Volver</a>
+}

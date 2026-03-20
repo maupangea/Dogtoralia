@@ -12,6 +12,7 @@ public class DogtoraliaDbContext : DbContext
     public DbSet<Veterinarian> Veterinarians => Set<Veterinarian>();
     public DbSet<Pet> Pets => Set<Pet>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<PetOwner> PetOwners => Set<PetOwner>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,6 +51,18 @@ public class DogtoraliaDbContext : DbContext
         modelBuilder.Entity<Appointment>()
             .HasOne(a => a.Veterinarian).WithMany(v => v.Appointments)
             .HasForeignKey(a => a.VeterinarianId).OnDelete(DeleteBehavior.Restrict);
+
+        // Unique index on PetOwner.Email
+        modelBuilder.Entity<PetOwner>()
+            .HasIndex(o => o.Email)
+            .IsUnique();
+
+        // Restrict: PetOwner → Pets (cannot delete owner who has pets)
+        modelBuilder.Entity<Pet>()
+            .HasOne(p => p.PetOwner)
+            .WithMany(o => o.Pets)
+            .HasForeignKey(p => p.PetOwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Seed Specialities
         modelBuilder.Entity<Speciality>().HasData(
@@ -132,18 +145,32 @@ public class DogtoraliaDbContext : DbContext
             new Veterinarian { Id = 10, FirstName = "Carmen", LastName = "Navarro Ortiz", LicenseNumber = "MV-100010", Email = "c.navarro@coyoacanvet.mx", Phone = "+52-55-5550-6101", YearsOfExperience = 9, ClinicId = 6 }
         );
 
+        // Seed PetOwners
+        modelBuilder.Entity<PetOwner>().HasData(
+            new PetOwner { Id = 1, Name = "Jorge Sánchez", Email = "jorge.sanchez@gmail.com", Phone = "+52-55-1234-5601", CreatedAt = new DateTime(2024, 1, 20) },
+            new PetOwner { Id = 2, Name = "María Fernández", Email = "maria.fernandez@outlook.com", Phone = "+52-55-1234-5602", CreatedAt = new DateTime(2024, 2, 5) },
+            new PetOwner { Id = 3, Name = "Andrés Gómez", Email = "andres.gomez@yahoo.com", Phone = "+52-33-9876-5603", CreatedAt = new DateTime(2024, 2, 18) },
+            new PetOwner { Id = 4, Name = "Patricia López", Email = "patricia.lopez@gmail.com", Phone = "+52-81-5555-5604", CreatedAt = new DateTime(2024, 3, 10) },
+            new PetOwner { Id = 5, Name = "Roberto Díaz", Email = "roberto.diaz@hotmail.com", Phone = "+52-55-1234-5605", CreatedAt = new DateTime(2024, 3, 22) },
+            new PetOwner { Id = 6, Name = "Lucía Herrera", Email = "lucia.herrera@gmail.com", Phone = "+52-22-7777-5606", CreatedAt = new DateTime(2024, 4, 1) },
+            new PetOwner { Id = 7, Name = "Eduardo Torres", Email = "eduardo.torres@gmail.com", Phone = "+52-55-1234-5607", CreatedAt = new DateTime(2024, 4, 15) },
+            new PetOwner { Id = 8, Name = "Gabriela Ruiz", Email = "gabriela.ruiz@outlook.com", Phone = "+52-33-3333-5608", CreatedAt = new DateTime(2024, 5, 5) },
+            new PetOwner { Id = 9, Name = "Felipe Morales", Email = "felipe.morales@yahoo.com", Phone = "+52-81-8888-5609", CreatedAt = new DateTime(2024, 5, 20) },
+            new PetOwner { Id = 10, Name = "Isabella Castro", Email = "isabella.castro@gmail.com", Phone = "+52-55-1234-5610", CreatedAt = new DateTime(2024, 6, 10) }
+        );
+
         // Seed Pets
         modelBuilder.Entity<Pet>().HasData(
-            new Pet { Id = 1, Name = "Max", Species = "Perro", Breed = "Labrador Retriever", DateOfBirth = new DateTime(2020, 3, 15), OwnerName = "Jorge Sánchez", OwnerEmail = "jorge.sanchez@gmail.com", OwnerPhone = "+52-55-1234-5601", Notes = "Alérgico al pollo.", CreatedAt = new DateTime(2024, 1, 20) },
-            new Pet { Id = 2, Name = "Luna", Species = "Gato", Breed = "Siamese", DateOfBirth = new DateTime(2021, 7, 22), OwnerName = "María Fernández", OwnerEmail = "maria.fernandez@outlook.com", OwnerPhone = "+52-55-1234-5602", Notes = null, CreatedAt = new DateTime(2024, 2, 5) },
-            new Pet { Id = 3, Name = "Paco", Species = "Ave", Breed = "African Grey Parrot", DateOfBirth = new DateTime(2018, 11, 10), OwnerName = "Andrés Gómez", OwnerEmail = "andres.gomez@yahoo.com", OwnerPhone = "+52-33-9876-5603", Notes = "Habla español.", CreatedAt = new DateTime(2024, 2, 18) },
-            new Pet { Id = 4, Name = "Bella", Species = "Perro", Breed = "Golden Retriever", DateOfBirth = new DateTime(2019, 5, 30), OwnerName = "Patricia López", OwnerEmail = "patricia.lopez@gmail.com", OwnerPhone = "+52-81-5555-5604", Notes = null, CreatedAt = new DateTime(2024, 3, 10) },
-            new Pet { Id = 5, Name = "Mimi", Species = "Gato", Breed = "Persian", DateOfBirth = new DateTime(2022, 1, 14), OwnerName = "Roberto Díaz", OwnerEmail = "roberto.diaz@hotmail.com", OwnerPhone = "+52-55-1234-5605", Notes = "Pelo largo, requiere grooming mensual.", CreatedAt = new DateTime(2024, 3, 22) },
-            new Pet { Id = 6, Name = "Rocky", Species = "Perro", Breed = "German Shepherd", DateOfBirth = new DateTime(2020, 9, 8), OwnerName = "Lucía Herrera", OwnerEmail = "lucia.herrera@gmail.com", OwnerPhone = "+52-22-7777-5606", Notes = null, CreatedAt = new DateTime(2024, 4, 1) },
-            new Pet { Id = 7, Name = "Coco", Species = "Ave", Breed = "Cockatiel", DateOfBirth = new DateTime(2023, 2, 28), OwnerName = "Eduardo Torres", OwnerEmail = "eduardo.torres@gmail.com", OwnerPhone = "+52-55-1234-5607", Notes = "Muy sociable.", CreatedAt = new DateTime(2024, 4, 15) },
-            new Pet { Id = 8, Name = "Nala", Species = "Gato", Breed = "Maine Coon", DateOfBirth = new DateTime(2020, 6, 3), OwnerName = "Gabriela Ruiz", OwnerEmail = "gabriela.ruiz@outlook.com", OwnerPhone = "+52-33-3333-5608", Notes = null, CreatedAt = new DateTime(2024, 5, 5) },
-            new Pet { Id = 9, Name = "Tito", Species = "Conejo", Breed = "Holland Lop", DateOfBirth = new DateTime(2022, 10, 17), OwnerName = "Felipe Morales", OwnerEmail = "felipe.morales@yahoo.com", OwnerPhone = "+52-81-8888-5609", Notes = "Dieta especial sin pellets.", CreatedAt = new DateTime(2024, 5, 20) },
-            new Pet { Id = 10, Name = "Kira", Species = "Perro", Breed = "Beagle", DateOfBirth = new DateTime(2021, 12, 25), OwnerName = "Isabella Castro", OwnerEmail = "isabella.castro@gmail.com", OwnerPhone = "+52-55-1234-5610", Notes = null, CreatedAt = new DateTime(2024, 6, 10) }
+            new Pet { Id = 1, Name = "Max", Species = "Perro", Breed = "Labrador Retriever", DateOfBirth = new DateTime(2020, 3, 15), Notes = "Alérgico al pollo.", CreatedAt = new DateTime(2024, 1, 20), PetOwnerId = 1 },
+            new Pet { Id = 2, Name = "Luna", Species = "Gato", Breed = "Siamese", DateOfBirth = new DateTime(2021, 7, 22), Notes = null, CreatedAt = new DateTime(2024, 2, 5), PetOwnerId = 2 },
+            new Pet { Id = 3, Name = "Paco", Species = "Ave", Breed = "African Grey Parrot", DateOfBirth = new DateTime(2018, 11, 10), Notes = "Habla español.", CreatedAt = new DateTime(2024, 2, 18), PetOwnerId = 3 },
+            new Pet { Id = 4, Name = "Bella", Species = "Perro", Breed = "Golden Retriever", DateOfBirth = new DateTime(2019, 5, 30), Notes = null, CreatedAt = new DateTime(2024, 3, 10), PetOwnerId = 4 },
+            new Pet { Id = 5, Name = "Mimi", Species = "Gato", Breed = "Persian", DateOfBirth = new DateTime(2022, 1, 14), Notes = "Pelo largo, requiere grooming mensual.", CreatedAt = new DateTime(2024, 3, 22), PetOwnerId = 5 },
+            new Pet { Id = 6, Name = "Rocky", Species = "Perro", Breed = "German Shepherd", DateOfBirth = new DateTime(2020, 9, 8), Notes = null, CreatedAt = new DateTime(2024, 4, 1), PetOwnerId = 6 },
+            new Pet { Id = 7, Name = "Coco", Species = "Ave", Breed = "Cockatiel", DateOfBirth = new DateTime(2023, 2, 28), Notes = "Muy sociable.", CreatedAt = new DateTime(2024, 4, 15), PetOwnerId = 7 },
+            new Pet { Id = 8, Name = "Nala", Species = "Gato", Breed = "Maine Coon", DateOfBirth = new DateTime(2020, 6, 3), Notes = null, CreatedAt = new DateTime(2024, 5, 5), PetOwnerId = 8 },
+            new Pet { Id = 9, Name = "Tito", Species = "Conejo", Breed = "Holland Lop", DateOfBirth = new DateTime(2022, 10, 17), Notes = "Dieta especial sin pellets.", CreatedAt = new DateTime(2024, 5, 20), PetOwnerId = 9 },
+            new Pet { Id = 10, Name = "Kira", Species = "Perro", Breed = "Beagle", DateOfBirth = new DateTime(2021, 12, 25), Notes = null, CreatedAt = new DateTime(2024, 6, 10), PetOwnerId = 10 }
         );
     }
 }

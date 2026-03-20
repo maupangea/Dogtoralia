@@ -8,6 +8,14 @@ public class PetFormViewModel
     public int? Id { get; set; }
 
     [Required]
+    public int PetOwnerId { get; set; }
+
+    // Display-only: populated from the PetOwner entity, not saved directly
+    public string OwnerName { get; set; } = string.Empty;
+    public string OwnerEmail { get; set; } = string.Empty;
+    public string OwnerPhone { get; set; } = string.Empty;
+
+    [Required]
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
 
@@ -21,19 +29,6 @@ public class PetFormViewModel
     [Required]
     [DataType(DataType.Date)]
     public DateTime DateOfBirth { get; set; }
-
-    [Required]
-    [MaxLength(200)]
-    public string OwnerName { get; set; } = string.Empty;
-
-    [Required]
-    [EmailAddress]
-    [MaxLength(200)]
-    public string OwnerEmail { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(20)]
-    public string OwnerPhone { get; set; } = string.Empty;
 
     [MaxLength(1000)]
     public string? Notes { get; set; }
