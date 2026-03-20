@@ -58,3 +58,4 @@ nunit-*.xml
 
 # Claude settings
 */.claude/settings.local.json
+prompts/
