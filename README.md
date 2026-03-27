@@ -1,6 +1,6 @@
 # Dogtoralia
 
-Veterinary services catalog built with **ASP.NET Core 10.0 MVC**, **EF Core 10.0.5**, and **SQL Server**.
+Veterinary services catalog built with **ASP.NET Core 10.0 MVC**, **EF Core 10.0.5**, and **SQL Server**. Aditional documentation and diagrams can be found in `Docs/` directory.
 
 ---
 
@@ -11,8 +11,6 @@ Veterinary services catalog built with **ASP.NET Core 10.0 MVC**, **EF Core 10.0
 - **Pets** — Register and manage pets, each linked to a pet owner, filter by species
 - **Appointments** — Schedule appointments between pets, clinics, and veterinarians, filter by clinic and status
 - **Veterinarians** — Managed as part of each clinic
-
-All UI text is in **Spanish**.
 
 ---
 
