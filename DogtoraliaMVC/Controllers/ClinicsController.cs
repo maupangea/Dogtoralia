@@ -2,6 +2,7 @@ using DogtoraliaMVC.Data;
 using DogtoraliaMVC.Helpers;
 using DogtoraliaMVC.Models;
 using DogtoraliaMVC.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ public class ClinicsController : Controller
         _context = context;
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Index(int? specialityId, int page = 1)
     {
         var query = _context.Clinics
@@ -41,6 +43,7 @@ public class ClinicsController : Controller
         return View(vm);
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Details(int id)
     {
         var clinic = await _context.Clinics
@@ -53,6 +56,7 @@ public class ClinicsController : Controller
         return View(clinic);
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create()
     {
         var vm = new ClinicFormViewModel
@@ -63,6 +67,7 @@ public class ClinicsController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ClinicFormViewModel vm)
     {
@@ -89,6 +94,7 @@ public class ClinicsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {
         var clinic = await _context.Clinics.FindAsync(id);
@@ -111,6 +117,7 @@ public class ClinicsController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, ClinicFormViewModel vm)
     {
@@ -147,6 +154,7 @@ public class ClinicsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var clinic = await _context.Clinics
@@ -159,6 +167,7 @@ public class ClinicsController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {

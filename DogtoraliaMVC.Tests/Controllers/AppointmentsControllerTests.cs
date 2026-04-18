@@ -1,6 +1,7 @@
 using DogtoraliaMVC.Controllers;
 using DogtoraliaMVC.Data;
 using DogtoraliaMVC.Models;
+using DogtoraliaMVC.Tests.Helpers;
 using DogtoraliaMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,14 @@ public class AppointmentsControllerTests
         var ctx = new DogtoraliaDbContext(options);
         ctx.Database.EnsureCreated();
         return ctx;
+    }
+
+    private static AppointmentsController CreateController(DogtoraliaDbContext ctx)
+    {
+        var mockUm = ControllerTestHelpers.CreateMockUserManager();
+        var controller = new AppointmentsController(ctx, mockUm.Object);
+        ControllerTestHelpers.SetAdminUser(controller);
+        return controller;
     }
 
     private static async Task<Appointment> AddAppointmentAsync(DogtoraliaDbContext ctx,
@@ -45,7 +54,7 @@ public class AppointmentsControllerTests
     public async Task Index_NoFilter_ReturnsAllAppointments()
     {
         using var ctx = CreateContext();
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Index(null, null, 1) as ViewResult;
         var vm = result!.Model as AppointmentsIndexViewModel;
@@ -60,7 +69,7 @@ public class AppointmentsControllerTests
         using var ctx = CreateContext();
         await AddAppointmentAsync(ctx, clinicId: 1);
         await AddAppointmentAsync(ctx, clinicId: 2, petId: 2, vetId: 3);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Index(1, null, 1) as ViewResult;
         var vm = result!.Model as AppointmentsIndexViewModel;
@@ -75,7 +84,7 @@ public class AppointmentsControllerTests
         using var ctx = CreateContext();
         await AddAppointmentAsync(ctx, status: AppointmentStatus.Pending);
         await AddAppointmentAsync(ctx, status: AppointmentStatus.Confirmed);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Index(null, AppointmentStatus.Confirmed, 1) as ViewResult;
         var vm = result!.Model as AppointmentsIndexViewModel;
@@ -92,7 +101,7 @@ public class AppointmentsControllerTests
         for (int i = 0; i < 9; i++)
             await AddAppointmentAsync(ctx, date: DateTime.Today.AddDays(i + 1));
 
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Index(null, null, 2) as ViewResult;
         var vm = result!.Model as AppointmentsIndexViewModel;
@@ -109,7 +118,7 @@ public class AppointmentsControllerTests
     {
         using var ctx = CreateContext();
         var appointment = await AddAppointmentAsync(ctx);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Details(appointment.Id) as ViewResult;
 
@@ -123,7 +132,7 @@ public class AppointmentsControllerTests
     public async Task Details_InvalidId_ReturnsNotFound()
     {
         using var ctx = CreateContext();
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Details(999);
 
@@ -136,7 +145,7 @@ public class AppointmentsControllerTests
     public async Task Create_Get_NoClinicId_ReturnsViewWithSelectLists()
     {
         using var ctx = CreateContext();
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Create((int?)null) as ViewResult;
         var vm = result!.Model as AppointmentFormViewModel;
@@ -152,7 +161,7 @@ public class AppointmentsControllerTests
     public async Task Create_Get_WithClinicId_PreSelectsClinicAndFiltersVets()
     {
         using var ctx = CreateContext();
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Create(1) as ViewResult;
         var vm = result!.Model as AppointmentFormViewModel;
@@ -169,7 +178,7 @@ public class AppointmentsControllerTests
     public async Task Create_Post_ValidModel_AddsAndRedirectsToClinicDetails()
     {
         using var ctx = CreateContext();
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
         var vm = new AppointmentFormViewModel
         {
             ClinicId = 1,
@@ -192,7 +201,7 @@ public class AppointmentsControllerTests
     public async Task Create_Post_InvalidModel_ReturnsView()
     {
         using var ctx = CreateContext();
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
         controller.ModelState.AddModelError("Reason", "Required");
         var vm = new AppointmentFormViewModel { ClinicId = 1, PetId = 1 };
 
@@ -208,7 +217,7 @@ public class AppointmentsControllerTests
     {
         using var ctx = CreateContext();
         var appointment = await AddAppointmentAsync(ctx);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Edit(appointment.Id) as ViewResult;
         var vm = result!.Model as AppointmentFormViewModel;
@@ -223,7 +232,7 @@ public class AppointmentsControllerTests
     public async Task Edit_Get_InvalidId_ReturnsNotFound()
     {
         using var ctx = CreateContext();
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Edit(999);
 
@@ -237,7 +246,7 @@ public class AppointmentsControllerTests
     {
         using var ctx = CreateContext();
         var appointment = await AddAppointmentAsync(ctx);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
         var vm = new AppointmentFormViewModel
         {
             Id = appointment.Id,
@@ -262,7 +271,7 @@ public class AppointmentsControllerTests
     {
         using var ctx = CreateContext();
         var appointment = await AddAppointmentAsync(ctx);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
         var vm = new AppointmentFormViewModel { Id = 999 };
 
         var result = await controller.Edit(appointment.Id, vm);
@@ -275,7 +284,7 @@ public class AppointmentsControllerTests
     {
         using var ctx = CreateContext();
         var appointment = await AddAppointmentAsync(ctx);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
         controller.ModelState.AddModelError("Reason", "Required");
         var vm = new AppointmentFormViewModel { Id = appointment.Id, ClinicId = 1 };
 
@@ -291,7 +300,7 @@ public class AppointmentsControllerTests
     {
         using var ctx = CreateContext();
         var appointment = await AddAppointmentAsync(ctx);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Delete(appointment.Id) as ViewResult;
         var model = result!.Model as Appointment;
@@ -304,7 +313,7 @@ public class AppointmentsControllerTests
     {
         using var ctx = CreateContext();
         var appointment = await AddAppointmentAsync(ctx);
-        var controller = new AppointmentsController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.DeleteConfirmed(appointment.Id) as RedirectToActionResult;
 

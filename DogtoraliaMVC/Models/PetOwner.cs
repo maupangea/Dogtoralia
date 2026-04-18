@@ -21,5 +21,7 @@ public class PetOwner
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public string? UserId { get; set; }
+
     public ICollection<Pet> Pets { get; set; } = new List<Pet>();
 }

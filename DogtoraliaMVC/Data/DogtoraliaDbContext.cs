@@ -1,9 +1,11 @@
 using DogtoraliaMVC.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace DogtoraliaMVC.Data;
 
-public class DogtoraliaDbContext : DbContext
+public class DogtoraliaDbContext : IdentityDbContext<IdentityUser>
 {
     public DogtoraliaDbContext(DbContextOptions<DogtoraliaDbContext> options) : base(options) { }
 
@@ -56,6 +58,12 @@ public class DogtoraliaDbContext : DbContext
         modelBuilder.Entity<PetOwner>()
             .HasIndex(o => o.Email)
             .IsUnique();
+
+        // Filtered unique index: one PetOwner per IdentityUser (NULLs excluded for seeded owners)
+        modelBuilder.Entity<PetOwner>()
+            .HasIndex(o => o.UserId)
+            .IsUnique()
+            .HasFilter("[UserId] IS NOT NULL");
 
         // Restrict: PetOwner → Pets (cannot delete owner who has pets)
         modelBuilder.Entity<Pet>()
