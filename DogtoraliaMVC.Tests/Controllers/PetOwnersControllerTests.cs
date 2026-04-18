@@ -1,6 +1,7 @@
 using DogtoraliaMVC.Controllers;
 using DogtoraliaMVC.Data;
 using DogtoraliaMVC.Models;
+using DogtoraliaMVC.Tests.Helpers;
 using DogtoraliaMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,13 +20,21 @@ public class PetOwnersControllerTests
         return ctx;
     }
 
+    private static PetOwnersController CreateController(DogtoraliaDbContext ctx)
+    {
+        var mockUm = ControllerTestHelpers.CreateMockUserManager();
+        var controller = new PetOwnersController(ctx, mockUm.Object);
+        ControllerTestHelpers.SetAdminUser(controller);
+        return controller;
+    }
+
     // ── Index ────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Index_ReturnsAllOwnersWithPets()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Index() as ViewResult;
         var owners = result!.Model as IEnumerable<PetOwner>;
@@ -39,7 +48,7 @@ public class PetOwnersControllerTests
     public async Task Details_ValidId_ReturnsViewModelWithPets()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Details(1) as ViewResult;
         var vm = result!.Model as PetOwnerDetailsViewModel;
@@ -52,7 +61,7 @@ public class PetOwnersControllerTests
     public async Task Details_InvalidId_ReturnsNotFound()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Details(999);
 
@@ -63,7 +72,7 @@ public class PetOwnersControllerTests
     public async Task Details_IncludesPetsForOwner()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Details(1) as ViewResult;
         var vm = result!.Model as PetOwnerDetailsViewModel;
@@ -78,7 +87,7 @@ public class PetOwnersControllerTests
     public void Create_Get_ReturnsEmptyForm()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = controller.Create() as ViewResult;
         var vm = result!.Model as PetOwnerFormViewModel;
@@ -93,7 +102,7 @@ public class PetOwnersControllerTests
     public async Task Create_Post_ValidModel_SavesAndRedirectsToIndex()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
         var vm = new PetOwnerFormViewModel
         {
             Name = "New Owner",
@@ -111,7 +120,7 @@ public class PetOwnersControllerTests
     public async Task Create_Post_InvalidModel_ReturnsView()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
         controller.ModelState.AddModelError("Name", "Required");
 
         var result = await controller.Create(new PetOwnerFormViewModel());
@@ -123,7 +132,7 @@ public class PetOwnersControllerTests
     public async Task Create_Post_DuplicateEmail_ReturnsViewWithError()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
         var vm = new PetOwnerFormViewModel
         {
             Name = "Duplicate",
@@ -143,7 +152,7 @@ public class PetOwnersControllerTests
     public async Task Edit_Get_ValidId_ReturnsViewModel()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Edit(1) as ViewResult;
         var vm = result!.Model as PetOwnerFormViewModel;
@@ -155,7 +164,7 @@ public class PetOwnersControllerTests
     public async Task Edit_Get_InvalidId_ReturnsNotFound()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Edit(999);
 
@@ -168,7 +177,7 @@ public class PetOwnersControllerTests
     public async Task Edit_Post_ValidModel_UpdatesAndRedirectsToIndex()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
         var vm = new PetOwnerFormViewModel
         {
             Id = 1,
@@ -187,7 +196,7 @@ public class PetOwnersControllerTests
     public async Task Edit_Post_IdMismatch_ReturnsBadRequest()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
         var vm = new PetOwnerFormViewModel { Id = 5 };
 
         var result = await controller.Edit(1, vm);
@@ -199,7 +208,7 @@ public class PetOwnersControllerTests
     public async Task Edit_Post_InvalidModel_ReturnsView()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
         controller.ModelState.AddModelError("Name", "Required");
         var vm = new PetOwnerFormViewModel { Id = 1 };
 
@@ -212,7 +221,7 @@ public class PetOwnersControllerTests
     public async Task Edit_Post_DuplicateEmailOnOtherOwner_ReturnsViewWithError()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
         var vm = new PetOwnerFormViewModel
         {
             Id = 1,
@@ -233,7 +242,7 @@ public class PetOwnersControllerTests
     public async Task Delete_Get_ValidId_ReturnsOwner()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Delete(1) as ViewResult;
 
@@ -244,7 +253,7 @@ public class PetOwnersControllerTests
     public async Task Delete_Get_InvalidId_ReturnsNotFound()
     {
         using var ctx = CreateContext();
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
 
         var result = await controller.Delete(999);
 
@@ -262,7 +271,7 @@ public class PetOwnersControllerTests
         ctx.PetOwners.Add(owner);
         await ctx.SaveChangesAsync();
 
-        var controller = new PetOwnersController(ctx);
+        var controller = CreateController(ctx);
         var result = await controller.DeleteConfirmed(owner.Id);
 
         Assert.IsType<RedirectToActionResult>(result);

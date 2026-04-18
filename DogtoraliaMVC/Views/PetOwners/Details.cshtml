@@ -64,6 +64,20 @@ else
 }
 
 <div class="d-flex gap-2 mt-3">
-    <a asp-action="Edit" asp-route-id="@Model.Owner.Id" class="btn btn-warning">Editar propietario</a>
-    <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+    <a asp-action="Edit" asp-route-id="@Model.Owner.Id" class="btn btn-warning">Editar perfil</a>
+    @if (Model.Owner.UserId != null)
+    {
+        <a asp-controller="Account" asp-action="ChangePassword" class="btn btn-outline-secondary">Cambiar contraseña</a>
+    }
+    @if (!Model.IsOwnProfile)
+    {
+        <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+    }
+    else
+    {
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver al inicio</a>
+        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-danger">Cerrar sesión</button>
+        </form>
+    }
 </div>

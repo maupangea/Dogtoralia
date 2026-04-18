@@ -2,6 +2,8 @@ using DogtoraliaMVC.Data;
 using DogtoraliaMVC.Helpers;
 using DogtoraliaMVC.Models;
 using DogtoraliaMVC.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +13,22 @@ namespace DogtoraliaMVC.Controllers;
 public class AppointmentsController : Controller
 {
     private readonly DogtoraliaDbContext _context;
+    private readonly UserManager<IdentityUser> _userManager;
     private const int PageSize = 8;
 
-    public AppointmentsController(DogtoraliaDbContext context)
+    public AppointmentsController(DogtoraliaDbContext context, UserManager<IdentityUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
+    private async Task<PetOwner?> GetCurrentUserOwnerAsync()
+    {
+        var userId = _userManager.GetUserId(User);
+        return userId is null ? null : await _context.PetOwners.FirstOrDefaultAsync(o => o.UserId == userId);
+    }
+
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> Index(int? clinicId, AppointmentStatus? status, int page = 1)
     {
         var query = _context.Appointments
@@ -25,6 +36,13 @@ public class AppointmentsController : Controller
             .Include(a => a.Pet)
             .Include(a => a.Veterinarian)
             .AsQueryable();
+
+        if (User.IsInRole("User"))
+        {
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (currentOwner == null) return Forbid();
+            query = query.Where(a => a.Pet.PetOwnerId == currentOwner.Id);
+        }
 
         if (clinicId.HasValue)
             query = query.Where(a => a.ClinicId == clinicId.Value);
@@ -58,6 +76,7 @@ public class AppointmentsController : Controller
         return View(vm);
     }
 
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> Details(int id)
     {
         var appointment = await _context.Appointments
@@ -67,9 +86,17 @@ public class AppointmentsController : Controller
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if (appointment == null) return NotFound();
+
+        if (User.IsInRole("User"))
+        {
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (appointment.Pet.PetOwnerId != currentOwner?.Id) return Forbid();
+        }
+
         return View(appointment);
     }
 
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> Create(int? clinicId)
     {
         var vm = new AppointmentFormViewModel
@@ -79,17 +106,37 @@ public class AppointmentsController : Controller
             Status = AppointmentStatus.Pending
         };
 
-        await PopulateFormSelectLists(vm, clinicId);
+        int? restrictToPetOwnerId = null;
+        if (User.IsInRole("User"))
+        {
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (currentOwner == null) return Forbid();
+            restrictToPetOwnerId = currentOwner.Id;
+        }
+
+        await PopulateFormSelectLists(vm, clinicId, restrictToPetOwnerId);
         return View(vm);
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,User")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(AppointmentFormViewModel vm)
     {
+        int? restrictToPetOwnerId = null;
+        if (User.IsInRole("User"))
+        {
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (currentOwner == null) return Forbid();
+            restrictToPetOwnerId = currentOwner.Id;
+
+            var pet = await _context.Pets.FindAsync(vm.PetId);
+            if (pet?.PetOwnerId != currentOwner.Id) return Forbid();
+        }
+
         if (!ModelState.IsValid)
         {
-            await PopulateFormSelectLists(vm, vm.ClinicId);
+            await PopulateFormSelectLists(vm, vm.ClinicId, restrictToPetOwnerId);
             return View(vm);
         }
 
@@ -110,10 +157,21 @@ public class AppointmentsController : Controller
         return RedirectToAction("Details", "Clinics", new { id = vm.ClinicId });
     }
 
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> Edit(int id)
     {
-        var appointment = await _context.Appointments.FindAsync(id);
+        var appointment = await _context.Appointments
+            .Include(a => a.Pet)
+            .FirstOrDefaultAsync(a => a.Id == id);
         if (appointment == null) return NotFound();
+
+        int? restrictToPetOwnerId = null;
+        if (User.IsInRole("User"))
+        {
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (appointment.Pet.PetOwnerId != currentOwner?.Id) return Forbid();
+            restrictToPetOwnerId = currentOwner.Id;
+        }
 
         var vm = new AppointmentFormViewModel
         {
@@ -127,24 +185,35 @@ public class AppointmentsController : Controller
             Status = appointment.Status
         };
 
-        await PopulateFormSelectLists(vm, appointment.ClinicId);
+        await PopulateFormSelectLists(vm, appointment.ClinicId, restrictToPetOwnerId);
         return View(vm);
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,User")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, AppointmentFormViewModel vm)
     {
         if (id != vm.Id) return BadRequest();
 
-        if (!ModelState.IsValid)
+        var appointment = await _context.Appointments
+            .Include(a => a.Pet)
+            .FirstOrDefaultAsync(a => a.Id == id);
+        if (appointment == null) return NotFound();
+
+        int? restrictToPetOwnerId = null;
+        if (User.IsInRole("User"))
         {
-            await PopulateFormSelectLists(vm, vm.ClinicId);
-            return View(vm);
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (appointment.Pet.PetOwnerId != currentOwner?.Id) return Forbid();
+            restrictToPetOwnerId = currentOwner.Id;
         }
 
-        var appointment = await _context.Appointments.FindAsync(id);
-        if (appointment == null) return NotFound();
+        if (!ModelState.IsValid)
+        {
+            await PopulateFormSelectLists(vm, vm.ClinicId, restrictToPetOwnerId);
+            return View(vm);
+        }
 
         appointment.ClinicId = vm.ClinicId;
         appointment.PetId = vm.PetId;
@@ -168,6 +237,7 @@ public class AppointmentsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var appointment = await _context.Appointments
@@ -181,6 +251,7 @@ public class AppointmentsController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
@@ -193,13 +264,16 @@ public class AppointmentsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task PopulateFormSelectLists(AppointmentFormViewModel vm, int? clinicId)
+    private async Task PopulateFormSelectLists(AppointmentFormViewModel vm, int? clinicId, int? petOwnerId = null)
     {
         vm.ClinicOptions = new SelectList(
             await _context.Clinics.OrderBy(c => c.Name).ToListAsync(), "Id", "Name", vm.ClinicId);
 
-        vm.PetOptions = new SelectList(
-            await _context.Pets.OrderBy(p => p.Name).ToListAsync(), "Id", "Name", vm.PetId);
+        var petsQuery = _context.Pets.OrderBy(p => p.Name).AsQueryable();
+        if (petOwnerId.HasValue)
+            petsQuery = petsQuery.Where(p => p.PetOwnerId == petOwnerId.Value);
+
+        vm.PetOptions = new SelectList(await petsQuery.ToListAsync(), "Id", "Name", vm.PetId);
 
         var vets = clinicId.HasValue && clinicId.Value > 0
             ? await _context.Veterinarians.Where(v => v.ClinicId == clinicId.Value).OrderBy(v => v.LastName).ToListAsync()

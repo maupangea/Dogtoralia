@@ -1,6 +1,8 @@
 using DogtoraliaMVC.Data;
 using DogtoraliaMVC.Models;
 using DogtoraliaMVC.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,12 +11,21 @@ namespace DogtoraliaMVC.Controllers;
 public class PetOwnersController : Controller
 {
     private readonly DogtoraliaDbContext _context;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public PetOwnersController(DogtoraliaDbContext context)
+    public PetOwnersController(DogtoraliaDbContext context, UserManager<IdentityUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
+    private async Task<PetOwner?> GetCurrentUserOwnerAsync()
+    {
+        var userId = _userManager.GetUserId(User);
+        return userId is null ? null : await _context.PetOwners.FirstOrDefaultAsync(o => o.UserId == userId);
+    }
+
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Index()
     {
         var owners = await _context.PetOwners
@@ -25,6 +36,7 @@ public class PetOwnersController : Controller
         return View(owners);
     }
 
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> Details(int id)
     {
         var owner = await _context.PetOwners
@@ -33,21 +45,38 @@ public class PetOwnersController : Controller
 
         if (owner == null) return NotFound();
 
+        if (User.IsInRole("User"))
+        {
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (currentOwner?.Id != id) return Forbid();
+        }
+
+        string? passwordHash = null;
+        if (owner.UserId != null)
+        {
+            var identityUser = await _userManager.FindByIdAsync(owner.UserId);
+            passwordHash = identityUser?.PasswordHash;
+        }
+
         var vm = new PetOwnerDetailsViewModel
         {
             Owner = owner,
-            Pets = owner.Pets.OrderBy(p => p.Name).ToList()
+            Pets = owner.Pets.OrderBy(p => p.Name).ToList(),
+            PasswordHash = passwordHash,
+            IsOwnProfile = User.IsInRole("User")
         };
 
         return View(vm);
     }
 
+    [Authorize(Roles = "Admin")]
     public IActionResult Create()
     {
         return View(new PetOwnerFormViewModel());
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(PetOwnerFormViewModel vm)
     {
@@ -73,8 +102,15 @@ public class PetOwnersController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> Edit(int id)
     {
+        if (User.IsInRole("User"))
+        {
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (currentOwner?.Id != id) return Forbid();
+        }
+
         var owner = await _context.PetOwners.FindAsync(id);
         if (owner == null) return NotFound();
 
@@ -90,10 +126,17 @@ public class PetOwnersController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,User")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, PetOwnerFormViewModel vm)
     {
         if (id != vm.Id) return BadRequest();
+
+        if (User.IsInRole("User"))
+        {
+            var currentOwner = await GetCurrentUserOwnerAsync();
+            if (currentOwner?.Id != id) return Forbid();
+        }
 
         if (!ModelState.IsValid)
             return View(vm);
@@ -122,9 +165,13 @@ public class PetOwnersController : Controller
             throw;
         }
 
+        if (User.IsInRole("User"))
+            return RedirectToAction(nameof(Details), new { id });
+
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var owner = await _context.PetOwners
@@ -136,6 +183,7 @@ public class PetOwnersController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
