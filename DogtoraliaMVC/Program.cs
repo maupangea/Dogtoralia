@@ -44,6 +44,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 // Add custom services
 builder.Services.AddScoped<ZipCodeService>();
+builder.Services.AddScoped<TriviaService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailService, EmailService>();
 
