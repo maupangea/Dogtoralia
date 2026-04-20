@@ -1,5 +1,6 @@
 using DogtoraliaMVC.Data;
 using DogtoraliaMVC.Models;
+using DogtoraliaMVC.Services;
 using DogtoraliaMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,15 +14,21 @@ public class AccountController : Controller
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly DogtoraliaDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
-        DogtoraliaDbContext context)
+        DogtoraliaDbContext context,
+        IEmailService emailService,
+        ILogger<AccountController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -103,6 +110,15 @@ public class AccountController : Controller
             CreatedAt = DateTime.UtcNow
         });
         await _context.SaveChangesAsync();
+
+        try
+        {
+            await _emailService.SendWelcomeEmailAsync(vm.Email, vm.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Welcome email could not be sent to {Email}", vm.Email);
+        }
 
         await _signInManager.SignInAsync(user, isPersistent: false);
         return RedirectToAction("Index", "Home");

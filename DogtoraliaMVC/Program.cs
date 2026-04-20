@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using DogtoraliaMVC.Data;
 using DogtoraliaMVC.Controllers.Api.Services;
+using DogtoraliaMVC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,8 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 // Add custom services
 builder.Services.AddScoped<ZipCodeService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 // Add DbContext
 builder.Services.AddDbContext<DogtoraliaDbContext>(options =>

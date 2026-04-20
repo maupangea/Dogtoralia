@@ -1,11 +1,13 @@
 using DogtoraliaMVC.Controllers;
 using DogtoraliaMVC.Data;
+using DogtoraliaMVC.Services;
 using DogtoraliaMVC.Tests.Helpers;
 using DogtoraliaMVC.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace DogtoraliaMVC.Tests.Controllers;
@@ -37,7 +39,11 @@ public class AccountControllerTests
     {
         var mockUm = ControllerTestHelpers.CreateMockUserManager();
         var mockSm = CreateMockSignInManager(mockUm);
-        var controller = new AccountController(mockUm.Object, mockSm.Object, ctx);
+        var mockEmail = new Mock<IEmailService>();
+        mockEmail.Setup(e => e.SendWelcomeEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+        var mockLogger = new Mock<ILogger<AccountController>>();
+        var controller = new AccountController(mockUm.Object, mockSm.Object, ctx, mockEmail.Object, mockLogger.Object);
         // Anonymous user context (not authenticated)
         controller.ControllerContext = new ControllerContext
         {
