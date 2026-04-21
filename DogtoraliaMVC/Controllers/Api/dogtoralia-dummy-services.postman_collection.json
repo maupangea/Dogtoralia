@@ -1,0 +1,94 @@
+{
+  "info": {
+    "_postman_id": "057e8f65-5f14-4dd7-bcb3-9f42b57262d4",
+    "name": "Dogtoralia dummy services",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "22502097"
+  },
+  "item": [
+    {
+      "name": "Trivia DB",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "accept",
+            "value": "*/*"
+          }
+        ],
+        "url": {
+          "raw": "http://dogtoralia.runasp.net/api/Trivia/Random",
+          "protocol": "http",
+          "host": [
+            "dogtoralia",
+            "runasp",
+            "net"
+          ],
+          "path": [
+            "api",
+            "Trivia",
+            "Random"
+          ]
+        },
+        "description": "Gets a random trivia question."
+      },
+      "response": []
+    },
+    {
+      "name": "Zip Code States",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "accept",
+            "value": "*/*"
+          }
+        ],
+        "url": {
+          "raw": "http://dogtoralia.runasp.net/api/ZipCodes/States",
+          "protocol": "http",
+          "host": [
+            "dogtoralia",
+            "runasp",
+            "net"
+          ],
+          "path": [
+            "api",
+            "ZipCodes",
+            "States"
+          ]
+        },
+        "description": "Gets all available states."
+      },
+      "response": []
+    },
+    {
+      "name": "Zip Codes Random",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "accept",
+            "value": "*/*"
+          }
+        ],
+        "url": {
+          "raw": "http://dogtoralia.runasp.net/api/ZipCodes/Random",
+          "protocol": "http",
+          "host": [
+            "dogtoralia",
+            "runasp",
+            "net"
+          ],
+          "path": [
+            "api",
+            "ZipCodes",
+            "Random"
+          ]
+        },
+        "description": "Gets a random Zip Code."
+      },
+      "response": []
+    }
+  ]
+}
