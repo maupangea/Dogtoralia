@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Dogtoralia.Api/Dogtoralia.Api.csproj" />
+  <Project Path="Dogtoralia.MVC/Dogtoralia.MVC.csproj" />
+  <Project Path="Dogtoralia.Shared/Dogtoralia.Shared.csproj" />
+  <Project Path="Dogtoralia.Tests/Dogtoralia.Tests.csproj" />
+</Solution>

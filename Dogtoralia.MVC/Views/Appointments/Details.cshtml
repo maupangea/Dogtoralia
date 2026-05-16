@@ -1,0 +1,70 @@
+@model AppointmentDto
+
+@{
+    ViewData["Title"] = "Detalle de cita";
+}
+
+@functions {
+    static string GetStatusLabel(Dogtoralia.Shared.Models.AppointmentStatus s) => s switch
+    {
+        Dogtoralia.Shared.Models.AppointmentStatus.Pending => "Pendiente",
+        Dogtoralia.Shared.Models.AppointmentStatus.Confirmed => "Confirmada",
+        Dogtoralia.Shared.Models.AppointmentStatus.Cancelled => "Cancelada",
+        Dogtoralia.Shared.Models.AppointmentStatus.Completed => "Completada",
+        _ => s.ToString()
+    };
+
+    static string GetStatusBadgeClass(Dogtoralia.Shared.Models.AppointmentStatus s) => s switch
+    {
+        Dogtoralia.Shared.Models.AppointmentStatus.Pending => "bg-warning text-dark",
+        Dogtoralia.Shared.Models.AppointmentStatus.Confirmed => "bg-success",
+        Dogtoralia.Shared.Models.AppointmentStatus.Cancelled => "bg-danger",
+        Dogtoralia.Shared.Models.AppointmentStatus.Completed => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+}
+
+<h1>Detalle de cita</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9"><span class="badge @GetStatusBadgeClass(Model.Status)">@GetStatusLabel(Model.Status)</span></dd>
+
+            <dt class="col-sm-3">Fecha</dt>
+            <dd class="col-sm-9">@Model.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Clínica</dt>
+            <dd class="col-sm-9">
+                <a asp-controller="Clinics" asp-action="Details" asp-route-id="@Model.ClinicId">@Model.ClinicName</a>
+            </dd>
+
+            <dt class="col-sm-3">Mascota</dt>
+            <dd class="col-sm-9">
+                <a asp-controller="Pets" asp-action="Details" asp-route-id="@Model.PetId">@Model.PetName</a>
+                (@Model.PetSpecies — @Model.PetBreed)
+            </dd>
+
+            <dt class="col-sm-3">Veterinario</dt>
+            <dd class="col-sm-9">@(Model.VeterinarianFullName ?? "Sin asignar")</dd>
+
+            <dt class="col-sm-3">Motivo</dt>
+            <dd class="col-sm-9">@Model.Reason</dd>
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <dt class="col-sm-3">Notas</dt>
+                <dd class="col-sm-9">@Model.Notes</dd>
+            }
+
+            <dt class="col-sm-3">Creada</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToString("d MMM yyyy HH:mm")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+</div>

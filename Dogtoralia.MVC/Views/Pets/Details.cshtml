@@ -1,0 +1,45 @@
+@model PetDto
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<h1>@Model.Name</h1>
+<span class="badge bg-success fs-6 mb-3">@Model.Species</span>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Raza</dt>
+            <dd class="col-sm-9">@Model.Breed</dd>
+
+            <dt class="col-sm-3">Fecha de nacimiento</dt>
+            <dd class="col-sm-9">@Model.DateOfBirth.ToString("d MMM yyyy") (@Model.Age año(s) de edad)</dd>
+
+            <dt class="col-sm-3">Propietario</dt>
+            <dd class="col-sm-9">
+                <a asp-controller="PetOwners" asp-action="Details" asp-route-id="@Model.PetOwnerId">@Model.PetOwnerName</a>
+            </dd>
+
+            <dt class="col-sm-3">Correo del propietario</dt>
+            <dd class="col-sm-9"><a href="mailto:@Model.PetOwnerEmail">@Model.PetOwnerEmail</a></dd>
+
+            <dt class="col-sm-3">Teléfono del propietario</dt>
+            <dd class="col-sm-9">@Model.PetOwnerPhone</dd>
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <dt class="col-sm-3">Notas</dt>
+                <dd class="col-sm-9">@Model.Notes</dd>
+            }
+
+            <dt class="col-sm-3">Registrado</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToString("d MMM yyyy")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    <a asp-controller="PetOwners" asp-action="Details" asp-route-id="@Model.PetOwnerId" class="btn btn-secondary">Volver al propietario</a>
+</div>

@@ -1,0 +1,33 @@
+@model PetDto
+
+@{
+    ViewData["Title"] = "Eliminar Mascota";
+}
+
+<h1>Eliminar Mascota</h1>
+<div class="alert alert-danger">¿Estás seguro de que deseas eliminar este registro de mascota?</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">Especie</dt>
+            <dd class="col-sm-9">@Model.Species</dd>
+
+            <dt class="col-sm-3">Raza</dt>
+            <dd class="col-sm-9">@Model.Breed</dd>
+
+            <dt class="col-sm-3">Propietario</dt>
+            <dd class="col-sm-9">@Model.PetOwnerName</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a asp-controller="PetOwners" asp-action="Details" asp-route-id="@Model.PetOwnerId" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
