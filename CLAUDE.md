@@ -142,6 +142,41 @@ All UI text visible in the web interface (Views) must be in **Spanish**. This in
 
 The backend (controllers, models, viewmodels, DbContext, migrations, tests) remains in **English**.
 
+This policy also applies to the MAUI app: page text (`Dogtoralia.Maui/Views/**`) and user-facing `ViewModel` strings (titles, error messages) are in **Spanish**; service/ViewModel logic stays in **English**.
+
+---
+
+## .NET MAUI App
+
+A cross-platform client (`Dogtoralia.Maui`) consumes `Dogtoralia.Api` over HTTP. It follows MVVM, with all testable logic isolated in a plain `net10.0` library so it can be unit-tested without a device/simulator.
+
+```
+Dogtoralia.Maui/             # MAUI head project (net10.0-android/ios/maccatalyst/windows)
+├── ApiConfig.cs             # Platform-aware API base URL
+├── AppShell.xaml(.cs)       # Flyout nav (Inicio, Clínicas, Mascotas, Veterinarios) + route registration
+├── MauiProgram.cs           # DI: HttpClient + I*ApiService + ViewModels + Pages
+├── Views/                   # HomePage, ClinicsPage, ClinicDetailPage, VeterinariansPage,
+│                            #   VeterinarianDetailPage, PetsPage, PetDetailPage, PetEditPage
+└── Platforms/               # Android manifest (cleartext) + iOS/MacCatalyst Info.plist (ATS localhost)
+
+Dogtoralia.Maui.Core/        # net10.0 library — referenced by the app AND Dogtoralia.Tests
+├── Services/                # I*ApiService + impls over an injected HttpClient (System.Net.Http.Json)
+│                            #   Clinic (read), Veterinarian (read), Pet (full CRUD), PetOwner (read)
+└── ViewModels/              # BaseViewModel + Clinics/ClinicDetail/Veterinarians/VeterinarianDetail/
+                             #   Pets/PetDetail/PetEdit (CommunityToolkit.Mvvm)
+```
+
+**Key points:**
+- **DTOs are reused from `Dogtoralia.Shared/Dtos`** — no duplicate MAUI models. The API has no pagination, so services return full `IReadOnlyList<T>`.
+- **API base URL** (`ApiConfig.BaseUrl`): Android emulator → `http://10.0.2.2:5186`; iOS/Mac Catalyst/Windows → `http://localhost:5186`. Cleartext HTTP is enabled for local dev.
+- **Navigation:** Shell routes; detail/edit pages receive `id` via `[QueryProperty]` and load in `OnAppearing`. The Pet form's owner picker is filled from `/api/petowners`; species is the same fixed list as MVC.
+- **No auth / no Appointments** in the mobile app (out of scope).
+- **Tests:** `Dogtoralia.Tests/Maui/` — ViewModel tests mock the `I*ApiService` interfaces (Moq); service tests use a stub `HttpMessageHandler` to assert URL/verb and deserialization.
+
+> `Dogtoralia.Maui.Core` and the test suite build/run on any net10.0 SDK without a platform toolchain. The MAUI **head** project needs the Apple/Android toolchain and carries two macOS workarounds in its csproj (both overridable):
+> - `ValidateXcodeVersion=false` — the released MAUI workload (`10.0.204.1`) pins the Apple SDK to Xcode 26.4, but the dev machine has Xcode 26.5; the one-minor delta is safe locally. Remove once a workload targeting 26.5 ships.
+> - `BaseOutputPath=$(HOME)/.dogtoralia-build/...` on macOS — the repo lives under iCloud-synced `~/Documents`, which stamps `com.apple.FinderInfo` xattrs that make `codesign` reject the `.app`. Building `bin/` outside iCloud avoids it. The permanent fix is to move the repo out of `~/Documents`.
+
 ---
 
 ## Common Commands
@@ -161,4 +196,10 @@ dotnet ef migrations add <Name> --project DogtoraliaMVC
 
 # Apply migration
 dotnet ef database update --project DogtoraliaMVC
+
+# Build the MAUI core library (no platform toolchain needed)
+dotnet build Dogtoralia.Maui.Core
+
+# Run the MAUI app on Mac Catalyst (start Dogtoralia.Api first)
+dotnet build Dogtoralia.Maui -t:Run -f net10.0-maccatalyst
 ```

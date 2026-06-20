@@ -1,5 +1,7 @@
 <Solution>
   <Project Path="Dogtoralia.Api/Dogtoralia.Api.csproj" />
+  <Project Path="Dogtoralia.Maui/Dogtoralia.Maui.csproj" Id="bfb274c4-34b1-4a6f-b136-2a3de942b9a1" />
+  <Project Path="Dogtoralia.Maui.Core/Dogtoralia.Maui.Core.csproj" />
   <Project Path="Dogtoralia.MVC/Dogtoralia.MVC.csproj" />
   <Project Path="Dogtoralia.Shared/Dogtoralia.Shared.csproj" />
   <Project Path="Dogtoralia.Tests/Dogtoralia.Tests.csproj" />
