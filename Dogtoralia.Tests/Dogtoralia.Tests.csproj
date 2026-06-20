@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Dogtoralia.MVC\Dogtoralia.MVC.csproj" />
     <ProjectReference Include="..\Dogtoralia.Api\Dogtoralia.Api.csproj" />
+    <ProjectReference Include="..\Dogtoralia.Maui.Core\Dogtoralia.Maui.Core.csproj" />
   </ItemGroup>
 
 </Project>

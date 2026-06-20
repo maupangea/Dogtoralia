@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:dtos="clr-namespace:Dogtoralia.Shared.Dtos;assembly=Dogtoralia.Shared"
+             xmlns:vm="clr-namespace:Dogtoralia.Maui.Core.ViewModels;assembly=Dogtoralia.Maui.Core"
+             x:Class="Dogtoralia.Maui.Views.PetEditPage"
+             x:DataType="vm:PetEditViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+            <Label Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding HasError}"
+                   TextColor="Red" />
+
+            <Label Text="Nombre" FontAttributes="Bold" />
+            <Entry Text="{Binding Name}" Placeholder="Nombre de la mascota" />
+
+            <Label Text="Especie" FontAttributes="Bold" />
+            <Picker ItemsSource="{x:Static vm:PetEditViewModel.SpeciesOptions}"
+                    SelectedItem="{Binding SelectedSpecies}"
+                    Title="Selecciona una especie" />
+
+            <Label Text="Raza" FontAttributes="Bold" />
+            <Entry Text="{Binding Breed}" Placeholder="Raza" />
+
+            <Label Text="Fecha de nacimiento" FontAttributes="Bold" />
+            <DatePicker Date="{Binding DateOfBirth}" Format="dd/MM/yyyy" />
+
+            <Label Text="Propietario" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding Owners}"
+                    SelectedItem="{Binding SelectedOwner}"
+                    ItemDisplayBinding="{Binding Name, x:DataType=dtos:PetOwnerDto}"
+                    Title="Selecciona un propietario" />
+
+            <Label Text="Notas" FontAttributes="Bold" />
+            <Editor Text="{Binding Notes}" Placeholder="Notas (opcional)" HeightRequest="100" />
+
+            <Button Text="Guardar"
+                    Command="{Binding SaveCommand}"
+                    Margin="0,12,0,0" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:dtos="clr-namespace:Dogtoralia.Shared.Dtos;assembly=Dogtoralia.Shared"
+             xmlns:vm="clr-namespace:Dogtoralia.Maui.Core.ViewModels;assembly=Dogtoralia.Maui.Core"
+             x:Class="Dogtoralia.Maui.Views.ClinicDetailPage"
+             x:DataType="vm:ClinicDetailViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10"
+                             x:DataType="dtos:ClinicDto"
+                             BindingContext="{Binding Clinic, Source={RelativeSource AncestorType={x:Type vm:ClinicDetailViewModel}}}">
+            <Label Text="{Binding Name}" FontSize="24" FontAttributes="Bold" />
+            <Label Text="{Binding SpecialityName}" FontSize="15" TextColor="Gray" />
+
+            <Label Text="Dirección" FontAttributes="Bold" Margin="0,10,0,0" />
+            <Label Text="{Binding Address}" />
+
+            <Label Text="Teléfono" FontAttributes="Bold" Margin="0,10,0,0" />
+            <Label Text="{Binding Phone}" />
+
+            <Label Text="Correo" FontAttributes="Bold" Margin="0,10,0,0" />
+            <Label Text="{Binding Email}" />
+
+            <Label Text="Sitio web" FontAttributes="Bold" Margin="0,10,0,0" />
+            <Label Text="{Binding Website}" />
+
+            <Label Text="Descripción" FontAttributes="Bold" Margin="0,10,0,0" />
+            <Label Text="{Binding Description}" />
+
+            <Label Text="Veterinarios" FontAttributes="Bold" Margin="0,10,0,0" />
+            <Label Text="{Binding VeterinarianCount}" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
